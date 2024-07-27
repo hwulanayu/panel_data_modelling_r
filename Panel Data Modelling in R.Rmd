@@ -61,6 +61,8 @@ library(MLmetrics)
 
 ## Data Preparation
 
+Data panel merupakan data dari beberapa individu sama yang diamati dalam kurun waktu tertentu. Data panel memiliki tiga jenis data, yaitu cross section, pooled cross section, dan panel. Jenis yang akan kita gunakan adalah panel data. Panel data adalah jenis data yang mengamati banyak subjek pada banyak titik atau periode waktu.
+
 ```{r}
 df <- read.csv('data_input/df_final_updated.csv')
 head(df)
@@ -88,10 +90,11 @@ Deskripsi Data:
 table(df$Kabupaten)
 ```
 
+> Jika jumlah unit waktu sama untuk setiap individu, maka data disebut *balanced panel*. 
+
 **2. Menggunakan `is.pbalanced()` **
 
-
-The data are balanced if each individual has the same time periods and the output is `TRUE`. 
+Data disebut balance jika tiap individu mempunyai jumlah periode waktu yang sama dan output dari fungsi `is.pbalanced()` adalah `TRUE`
 
 ```{r}
 is.pbalanced(df, # data
@@ -99,7 +102,7 @@ is.pbalanced(df, # data
 ```
 
 
-### Data Format adjustments
+### Penyesuaian Format Data 
 
 **1. Membuat Panel Data Frame**
 
@@ -110,6 +113,7 @@ df_panel <- df %>% pdata.frame(index = c('Kabupaten', 'Tahun'))
 #memeriksa struktur data
 glimpse(df_panel)
 ```
+Aplikasi fungsi `pdata.frame()` mengubah tipe data yang dimasukan ke parameter `index` menjadi factor dan sisanya menjadi pseries
 
 **2. Memeriksa Dimensi Data**
 
@@ -117,6 +121,18 @@ glimpse(df_panel)
 pdim(df_panel)
 ```
 
+Insight:
+
+- data panel sudah balanced
+- terdapat 38 index individu (n)
+- terdapat 4 index waktu (T)
+- total observasi sebanyak 152
+
+Apabila data panel yang kita miliki tidak *balance* kita dapat melakukan balancing menggunakan fungsi `make.pbalanced` dengan parameter `balance.type` yang dapat diisi dengan 3 opsi berikut:
+
+1. `fill` : setiap kolom waktu yg hilang akan diberikan nilai NA
+2. `shared.times` : menggunakan informasi waktu yang ada pada seluruh individu
+3. `shared.individuals` : hanya menggunakan individu yang informasi waktunya lengkap
 
 ## Pemeriksaan Missing Value
 
@@ -131,7 +147,7 @@ colSums(is.na(df_panel))
 ```{r}
 summary(df_panel)
 ```
-
+- Persentase kemiskinan terendah di Jawa Tengah adalah 3.8% dan tertinggi adalah 23.7%.
 
 ### Hubungan Antar Variabel
 
@@ -142,12 +158,7 @@ df_panel %>%
   ggcorrplot(type='lower', lab=TRUE)
 ```
 
-```{r}
-df %>% 
-  select(-c(Kabupaten, Tahun)) %>% 
-  cor() %>% 
-  ggcorrplot(type='lower', lab=TRUE)
-```
+- variabel rls (rata-rata lama sekolah) berkorelasi negatif kuat (-0.81) dengan variabel persentase_kemiskinan.
 
 ### Explorasi Socio demografi
 
@@ -217,6 +228,18 @@ Timur <- df %>%
 
 #### Coplot 
 
+Coplot atau conditioning plot adalah teknik visualisasi data yang digunakan untuk mengeksplorasi hubungan antara beberapa variabel dalam sebuah dataset. Dengan coplot, kita bisa melihat bagaimana hubungan antara dua variabel berubah ketika kondisi variabel ketiga atau lebih diubah. 
+
+Fungsi `coplot()` dengan parameter:
+
+- `formula` =  target ~ index1 given index2 
+- `type`    = `"l"` untuk line dan `"b"` untuk point & line plot
+- `data`    = dataset
+- `rows`    = banyaknya baris panel plot yang dibuat
+- `col`     = warna plot yang disajikan
+
+* Tlatah Utara
+
 ```{r}
 coplot(persentase_kemiskinan ~ Tahun|Kabupaten,
        type = "b",
@@ -228,6 +251,7 @@ coplot(persentase_kemiskinan ~ Tahun|Kabupaten,
 
 > Dari coplot di atas, daerah Utara Jawa Timur memiliki persentase kemiskinan yang relatif sama, kecuali Kabupaten Pamekasan. Dibandingkan dengan Kabupaten Bangkalan, Sampang, dan Sumenep, persentase kemiskinan Kabupaten Pamekasan per tahunnya berkisar di angka 14 sampai 15 persen. Tiap Kabupaten di daerah ini persentase kemiskinannya meningkat di tahun 2021, bertepatan dengan munculnya pandemi covid secara luas. 
 
+* Tlatah Barat
 ```{r}
 coplot(persentase_kemiskinan ~ Tahun|Daerah,
        type = "b",
@@ -237,7 +261,9 @@ coplot(persentase_kemiskinan ~ Tahun|Daerah,
        overlap = 0) 
 ```
 
+> Dari coplot di atas, daerah Barat Jawa Timur memiliki persentase kemiskinan yang lebih variatif dibandingkan daerah Utara. Persentase Kemiskinan tertinggi ada di Kabupaten Ngawi, Kabupaten Pacitan, dan Kabupaten Tuban yaitu sebesar 14-16%. Persentase kemiskinan terendah ada pada Kota Madiun sebesar 4-5%.
 
+* Tlatah Barat atas
 ```{r}
 coplot(persentase_kemiskinan ~ Tahun|Daerah,
        type = "b",
@@ -247,7 +273,7 @@ coplot(persentase_kemiskinan ~ Tahun|Daerah,
        overlap = 0) 
 ```
 
-
+* Tlatah Barat bawah
 ```{r}
 coplot(persentase_kemiskinan ~ Tahun|Daerah,
        type = "b",
@@ -256,7 +282,7 @@ coplot(persentase_kemiskinan ~ Tahun|Daerah,
        col = "darkblue",
        overlap = 0) 
 ```
-
+* Tlatah Tengah
 ```{r}
 coplot(persentase_kemiskinan ~ Tahun|Daerah,
        type = "b",
@@ -265,7 +291,9 @@ coplot(persentase_kemiskinan ~ Tahun|Daerah,
        col = "darkred",
        overlap = 0) 
 ```
+> Dari coplot di atas, daerah Tengah Jawa Timur yang memiliki persentase kemiskinan tertinggi ada di Kabupaten Gresik sebesar 11-12%. Persentase kemiskinan terendah ada pada Kabupaten Sidoarjo dan Kota Surabaya sebesar 4-6%.
 
+* Tlatah Timur
 ```{r}
 coplot(persentase_kemiskinan ~ Tahun|Kabupaten,
        type = "b",
@@ -274,6 +302,7 @@ coplot(persentase_kemiskinan ~ Tahun|Kabupaten,
        col = "darkblue",
        overlap = 0) 
 ```
+> Dari coplot di atas, daerah Timur Jawa Timur yang memiliki persentase kemiskinan tertinggi ada di Kabupaten Probolinggo sebesar 15-19%. Persentase kemiskinan terendah ada pada Kabupaten Banyuwangi sebesar 7-8%.
 
 ### Heatmap persentase kemiskinan
 
