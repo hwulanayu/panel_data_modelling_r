@@ -291,6 +291,7 @@ coplot(persentase_kemiskinan ~ Tahun|Daerah,
        col = "darkred",
        overlap = 0) 
 ```
+
 > Dari coplot di atas, daerah Tengah Jawa Timur yang memiliki persentase kemiskinan tertinggi ada di Kabupaten Gresik sebesar 11-12%. Persentase kemiskinan terendah ada pada Kabupaten Sidoarjo dan Kota Surabaya sebesar 4-6%.
 
 * Tlatah Timur
@@ -302,6 +303,7 @@ coplot(persentase_kemiskinan ~ Tahun|Kabupaten,
        col = "darkblue",
        overlap = 0) 
 ```
+
 > Dari coplot di atas, daerah Timur Jawa Timur yang memiliki persentase kemiskinan tertinggi ada di Kabupaten Probolinggo sebesar 15-19%. Persentase kemiskinan terendah ada pada Kabupaten Banyuwangi sebesar 7-8%.
 
 ### Heatmap persentase kemiskinan
@@ -318,7 +320,7 @@ plotmeans( persentase_kemiskinan ~ Kabupaten,
            main="Heterogenitas Persentase Kemiskinan antar Kabupaten/Kota")
 ```
 
-    
+> Berdasarkan hasil visual diatas terlihat bahwa persentase kemiskinan antar Kabupaten/Kota cukup heterogen    
 
 **2. Heterogenitas antar Waktu**
 
@@ -327,6 +329,8 @@ plotmeans( persentase_kemiskinan ~ Tahun,
            data = df_panel, 
            main="Heterogenitas Persentase Kemiskinan antar Tahun")
 ```
+
+Berdasarkan hasil visual diatas terlihat bahwa persentase kemiskinan antar tahun cukup homogen karena range rata-rata hanya berkisar di 10-12% saja. Namun, perlu diperhatikan bahwa data di atas hanya ada pada rentang tahun 2019 sampai 2022.
 
 ## Cross-Validation
 
@@ -344,15 +348,22 @@ setelah dilakukan cross validation kita perlu memastikan kembali bahwa data trai
 panel_train <- panel_train %>% 
   droplevels() %>%    # menghapus informasi waktu yang diambil sebagai data test (tahun 2022)
   make.pbalanced()    # melakukan balancing kembali
+
+is.pbalanced(panel_train)
 ```
 
 
 ## Pemeriksaan Asumsi Multikolinieritas
 
+nilai VIF > 10: terjadi multicollinearity pada model
+nilai VIF < 10: tidak terjadi multicollinearity pada model
+
 ```{r}
-lm(formula=persentase_kemiskinan ~ .-Kabupaten - Tahun , data=panel_train) %>% 
+lm(formula=persentase_kemiskinan ~ .-Kabupaten - Tahun , 
+   data=panel_train) %>% 
   vif()
 ```
+> Tidak ada variable yang saling berkorelasi.
 
 ## Penentuan Model Estimasi
 
