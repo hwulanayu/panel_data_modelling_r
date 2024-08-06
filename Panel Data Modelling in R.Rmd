@@ -10,7 +10,6 @@ output:
     toc_depth: 2
     toc_float:
       collapsed: false
-    number_sections: true
     df_print: paged
 always_allow_html: true
 ---
@@ -61,7 +60,7 @@ library(MLmetrics)
 
 ## Data Preparation
 
-Data panel merupakan data dari beberapa individu sama yang diamati dalam kurun waktu tertentu. Data panel memiliki tiga jenis data, yaitu cross section, pooled cross section, dan panel. Jenis yang akan kita gunakan adalah panel data. Panel data adalah jenis data yang mengamati banyak subjek pada banyak titik atau periode waktu.
+Data panel merupakan data dari beberapa individu sama yang diamati dalam kurun waktu tertentu. Data panel memiliki tiga jenis data, yaitu cross section, pooled cross section, dan panel. Jenis yang akan kita gunakan untuk case study ini adalah panel data. Panel data merupakan jenis data yang mengamati banyak subjek pada banyak titik atau periode waktu.
 
 ```{r}
 df <- read.csv('data_input/df_final_updated.csv')
@@ -81,6 +80,12 @@ Deskripsi Data:
   + `tpt`: [Tingkat Pengangguran Terbuka (TPT)](https://surakartakota.bps.go.id/indicator/6/152/1/tingkat-pengangguran-terbuka-tpt-.html)
   + `kejahatan`: [jumlah kejahatan yang dilaporkan menurut Kepolisian Resort ](https://jatim.bps.go.id/statictable/2023/07/25/3021/kriminalitas---jumlah-kejahatan-yang-dilaporkan-menurut-kepolisian-resort-di-provinsi-jawa-timur-2019-2022.html)
   + `puskesmas`: [jumlah puskesmas](https://jatim.beta.bps.go.id/id/statistics-table/1/Mjk3OSMx/-jumlah-puskesmas-puskesmas-rawat-inap-puskesmas-non-rawat-inap-menurut-kabupaten-kota-di-provinsi-jawa-timur-2021-dan-2022.html)
+
+## Workflow Panel Data
+
+```{r, echo=FALSE, out.width="100%", fig.cap="Sumber Gambar: DSS Algoritma - Unveiling Socio Demographic Pattern by Yusuf Rafsanjani"}
+knitr::include_graphics("assets/data panel workflow.png")
+```
 
 ## Check Balancing Data
 
@@ -170,7 +175,7 @@ Budayawan Universitas Jember, Ayu Sutarto (2004) mengatakan, wilayah Jatim terba
 knitr::include_graphics("assets/pembagian_jawa_timur.jpeg")
 ```
 
-```{r}
+```{r include=FALSE}
 # memisah kata pertama dan kedua untuk nama tiap Daerah
 Kabupaten_str = "Kabupaten"
 df <- df %>% 
@@ -238,7 +243,7 @@ Fungsi `coplot()` dengan parameter:
 - `rows`    = banyaknya baris panel plot yang dibuat
 - `col`     = warna plot yang disajikan
 
-* Tlatah Utara
+##### Tlatah Utara
 
 ```{r}
 coplot(persentase_kemiskinan ~ Tahun|Kabupaten,
@@ -251,7 +256,7 @@ coplot(persentase_kemiskinan ~ Tahun|Kabupaten,
 
 > Dari coplot di atas, daerah Utara Jawa Timur memiliki persentase kemiskinan yang relatif sama, kecuali Kabupaten Pamekasan. Dibandingkan dengan Kabupaten Bangkalan, Sampang, dan Sumenep, persentase kemiskinan Kabupaten Pamekasan per tahunnya berkisar di angka 14 sampai 15 persen. Tiap Kabupaten di daerah ini persentase kemiskinannya meningkat di tahun 2021, bertepatan dengan munculnya pandemi covid secara luas. 
 
-* Tlatah Barat
+##### Tlatah Barat
 ```{r}
 coplot(persentase_kemiskinan ~ Tahun|Daerah,
        type = "b",
@@ -282,7 +287,7 @@ coplot(persentase_kemiskinan ~ Tahun|Daerah,
        col = "darkblue",
        overlap = 0) 
 ```
-* Tlatah Tengah
+##### Tlatah Tengah
 ```{r}
 coplot(persentase_kemiskinan ~ Tahun|Daerah,
        type = "b",
@@ -294,7 +299,7 @@ coplot(persentase_kemiskinan ~ Tahun|Daerah,
 
 > Dari coplot di atas, daerah Tengah Jawa Timur yang memiliki persentase kemiskinan tertinggi ada di Kabupaten Gresik sebesar 11-12%. Persentase kemiskinan terendah ada pada Kabupaten Sidoarjo dan Kota Surabaya sebesar 4-6%.
 
-* Tlatah Timur
+##### Tlatah Timur
 ```{r}
 coplot(persentase_kemiskinan ~ Tahun|Kabupaten,
        type = "b",
@@ -306,13 +311,9 @@ coplot(persentase_kemiskinan ~ Tahun|Kabupaten,
 
 > Dari coplot di atas, daerah Timur Jawa Timur yang memiliki persentase kemiskinan tertinggi ada di Kabupaten Probolinggo sebesar 15-19%. Persentase kemiskinan terendah ada pada Kabupaten Banyuwangi sebesar 7-8%.
 
-### Heatmap persentase kemiskinan
-
-cari data shp terus join di csv
-
 ### Heterogenitas Persentase Kemiskinan
 
-**1. Heterogenitas antar Kabupaten/Kota**
+#### Heterogenitas antar Kabupaten/Kota
 
 ```{r}
 plotmeans( persentase_kemiskinan ~ Kabupaten, 
@@ -322,7 +323,7 @@ plotmeans( persentase_kemiskinan ~ Kabupaten,
 
 > Berdasarkan hasil visual diatas terlihat bahwa persentase kemiskinan antar Kabupaten/Kota cukup heterogen    
 
-**2. Heterogenitas antar Waktu**
+#### Heterogenitas antar Waktu
 
 ```{r}
 plotmeans( persentase_kemiskinan ~ Tahun, 
@@ -342,7 +343,7 @@ panel_train <- df_panel %>% filter(Tahun != 2022)
 panel_test <- df_panel %>% filter(Tahun %in% 2022)
 ```
 
-setelah dilakukan cross validation kita perlu memastikan kembali bahwa data train sudah balance dengan melakukan balancing
+Setelah dilakukan cross validation kita perlu memastikan kembali bahwa data train sudah balance dengan melakukan balancing
 
 ```{r}
 panel_train <- panel_train %>% 
@@ -363,13 +364,46 @@ lm(formula=persentase_kemiskinan ~ .-Kabupaten - Tahun ,
    data=panel_train) %>% 
   vif()
 ```
+
 > Tidak ada variable yang saling berkorelasi.
 
 ## Penentuan Model Estimasi
 
+Regresi Data Panel adalah gabungan antara data cross section dan data time series, dengan unit cross section yang sama diukur pada waktu yang berbeda. Jika kita memiliki **T** periode waktu (t = 1, 2, ..., T) dan **N** jumlah individu (i = 1, 2, ..., N), maka dengan data panel kita akan memiliki total unit observasi sebanyak **NT**. 
+
+$$y_{it} = \beta_0+\beta _{1t}*x_{1t}+u_{it}$$
+
+dengan:
+
+- $y_{it}$: variabel target
+- indeks $i$: mendefinisikan individu, wilayah, kota, perlakuan dll.
+- indeks $t$: mendefinisikan waktu
+- $\beta_0$: intercept
+- $\beta _{1t}*x_{1t}$: koefisien untuk variabel prediktor 1
+- $u_{it}$: disturbance 
+
+berdasarkan model tersebut, indeks `i` adalah dimensi untuk cross sectional dan indeks `t` adalah dimensi untuk deret waktu. $u_{it}$ adalah nilai yang menunjukkan heterogenitas antar cross sectional dan deret waktu di dalam mode, yang didefinisikan sebagai berikut:
+
+$$u_{it} = \mu _i+\lambda _t+\upsilon _{it}$$
+dengan:
+
+- $\mu _i$ : nilai heterogenitas individu (cross section) yang tidak dapat diamati
+- $\lambda _t$ : nilai heterogenitas waktu yang tidak dapat diamati
+- $\upsilon _{it}$ : nilai error sisaan
+
 ### Pembuatan Model
 
-**Model Gabungan (Common Effect Model)**
+Modeling akan menggunakan fungsi `plm()` dari package `plm` dengan parameter:
+
+- `formula` = Target ~ Prediktor
+- `data`    = dataframe
+- `index`   = c("kolom_individu","kolom_waktu")
+- `model`   =
+  + `"pooling"` : model CEM
+  + `"within"`  : model FEM
+  + `"random"`  : model REM
+  
+#### Model Gabungan (Common Effect Model)
 
 ```{r}
 # menyimpan formula regresi data panel
@@ -385,7 +419,7 @@ cem
 ```
 
 
-**Model Pengaruh Tetap (Fixed Effect Model)**
+#### Model Pengaruh Tetap (Fixed Effect Model)
 
 ```{r}
 # membuat fixed effect model 
@@ -397,7 +431,7 @@ fem <- plm(formula_kemiskinan,
 fem
 ```
 
-**Uji Chow**
+#### Uji Chow 
 
 Memilih model terbaik antara Common Effect Model dengan Fixed Effect Model dapat menggunakan Uji Chow dengan fungsi `pooltest()`.
 
@@ -417,7 +451,7 @@ Kesimpulan: Model terbaik untuk data persentase kemiskinan di Jawa Timur adalah 
 
 Langkah selanjutnya yang akan dilakukan ketika model terbaik bertipe Fixed Effect adalah membuat model Random Effect.
 
-**Model Pengaruh Acak (Random Effect Model)**
+#### Model Pengaruh Acak (Random Effect Model)
 
 ```{r}
 rem <- plm(formula_kemiskinan, 
@@ -427,9 +461,9 @@ rem <- plm(formula_kemiskinan,
 rem
 ```
 
-**Uji Hausman**
+#### Uji Hausman
 
-Pemilihan model terbaik antara Fixed Effect Model dengan Random Effect Model dapat menggunakan Uji Hausman dengan fungsi `phtest()`. Pada dasarnya test ini menguji apakah _unique errors/disturbance_ $u_{it}$ berkorelasi dengan regresi, hipotesis nolnya adalah tidak.
+Pemilihan model terbaik antara Fixed Effect Model dengan Random Effect Model dapat ditentukan dengan Uji Hausman dengan fungsi `phtest()`. Pada dasarnya test ini menguji apakah _unique errors/disturbance_ $u_{it}$ berkorelasi dengan regresi, hipotesis nolnya adalah tidak.
 
 Hipotesis yang diuji:
 
@@ -447,7 +481,7 @@ Kesimpulan: Model terbaik untuk data persentase kemiskinan di Jawa Timur adalah 
 
 Langkah selanjutnya yang akan dilakukan ketika model terbaik bertipe Random Effect adalah uji Lagrange Multiplier.
 
-**uji Lagrange Multiplier**
+#### Uji Lagrange Multiplier
 
 Uji LM memutuskan antara random effect model dan regresi OLS sederhana. Hipotesis nol dalam uji LM adalah varians antar entitas bernilai nol. Artinya, tidak ada perbedaan signifikan antar unit (yaitu tidak ada efek panel).
 
@@ -466,7 +500,7 @@ plmtest(rem,
 
 p-value (0.03074) > α (0.05) maka tolak $H_0$. 
 
-Kesimpulan: Ada pengaruh individu & waktu. Sehingga perlu dipastikan:
+Kesimpulan: Ada pengaruh individu & waktu. Karena hasil uji LM menunjukkan bahwa ada pengaruh individu dan waktu, kita tidak dapat menggunakan model regresi OLS sederhana. Sehingga perlu dipastikan:
 
 **Pemeriksaan Pengaruh Individu**
 
@@ -482,6 +516,9 @@ Hipotesis yang diuji adalah sebagai berikut.
 - H0 : Tidak ada pengaruh waktu
 - H1 : Ada pengaruh waktu
 
+Jika uji pengaruh individu signifikan (p-value < 0.05): Ada pengaruh individu yang signifikan, dan model efek individu harus dipertimbangkan.
+
+Jika uji pengaruh waktu signifikan (p-value < 0.05): Ada pengaruh waktu yang signifikan, dan model efek waktu harus dipertimbangkan.
 ```{r}
 plmtest(rem, 
         effect = "time",
@@ -493,7 +530,12 @@ plmtest(rem,
         effect = "individual",
         type = "bp")
 ```
-Ada efek individu tapi tidak ada efek waktu. kalo misal gini, bera
+
+> Ada efek individu tapi tidak ada efek waktu. 
+
+#### Final Model: Random Effect - Individual
+
+Jika kesimpulan menunjukkan bahwa ada efek individu tetapi tidak ada efek waktu, langkah berikutnya adalah memilih model yang paling sesuai untuk analisis data panel berdasarkan hasil tersebut yaitu, model efek acak individual (random effects individual) .
 
 ```{r}
 rem_ind <- plm(formula_kemiskinan, 
@@ -501,8 +543,8 @@ rem_ind <- plm(formula_kemiskinan,
            index = c("Kabupaten","Tahun"),
            model = "random",
            effect = "individual")
-rem_ind
 ```
+
 
 ### Pengujian Asumsi
 
@@ -605,8 +647,9 @@ Interpretasi:
 
 ## Prediksi & Evaluasi
 
+**Mengukur kinerja model menggunakan data test**
+
 ```{r}
-# your code here
 pred <- predict(rem_ind, # model akhir
                 panel_test, # data test
                 na.fill = F)
@@ -624,11 +667,29 @@ MAPE(y_pred = pred,
      y_true = panel_test$persentase_kemiskinan)
 ```
 
-> Insight: tingkat kesalahan prediski model fem dalam memprediksi nilai baru adalah sebesar 34.56%. Angka sekian cukup besar jika kita bandingkan dengan _industry standard threshold_, yaitu di bawah 10%, sehingga model kurang baik dalam memprediksi data yang baru. Namun, 
+> Insight: tingkat kesalahan prediski model fem dalam memprediksi nilai baru adalah sebesar 34.56%. Angka sekian cukup besar jika kita bandingkan dengan _industry standard threshold_, yaitu di bawah 10%, sehingga model kurang baik dalam memprediksi data yang baru. 
 
-## Kesimpulan dan Saran
+
+## Kesimpulan dan Rekomendasi
+
+### Kesimpulan
+
+Berdasarkan analisis yang dilakukan, didapatkan bahwa model terbaik untuk memprediksi persentase kemiskinan di Provinsi Jawa Timur adalah model Random Effect dengan efek individu. Beberapa poin penting yang dapat disimpulkan dari analisis ini adalah:
+
+- Variabel yang paling signifikan mempengaruhi persentase kemiskinan adalah rata-rata lama sekolah (rls) dan tingkat pengangguran terbuka (tpt).
+- Daerah dengan persentase kemiskinan tertinggi dan terendah dapat diidentifikasi dengan jelas berdasarkan tlatah atau kawasan kebudayaan.
+- Model Random Effect dengan efek individu adalah model final dengan MAPE yang besar sehingga akan lebih baik mencoba dengan data yang lebih banyak.
+
+### Rekomendasi
+
+- Peningkatan Rata-rata Lama Sekolah (rls): Upaya peningkatan akses dan kualitas pendidikan di daerah-daerah dengan persentase kemiskinan tinggi dapat menjadi prioritas.
+- Penanganan Pengangguran: Program-program yang dapat menurunkan tingkat pengangguran terbuka (tpt) seperti pelatihan kerja dan penciptaan lapangan kerja baru perlu ditingkatkan.
+- Penelitian Lanjutan: Diperlukan penelitian lebih lanjut dengan menggunakan data yang lebih luas dan variabel-variabel tambahan untuk mengidentifikasi faktor-faktor lain yang mungkin mempengaruhi tingkat kemiskinan.
+
+Dengan menggunakan data panel dan metode yang tepat, analisis ini dapat membantu pengambilan keputusan yang lebih baik dalam upaya mengurangi tingkat kemiskinan di Provinsi Jawa Timur.
 
 ## Referensi
 
 - https://www.princeton.edu/~otorres/Panel101R.pdf
+- DSS Algoritma: Unveiling Socio Demographic Pattern: Exploring Data Panels with plm() in R
 
